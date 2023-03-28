@@ -2,7 +2,7 @@
 
     // Класс контроллера для обработки запросов
     class CardsController {
-        private $apiClient;
+        private object $apiClient;
 
         public function __construct($apiClient) {
             $this->apiClient = $apiClient;
@@ -12,7 +12,7 @@
             try {
                 $token = $this->apiClient->getToken();
                 $card_data = $this->apiClient->getCardData($card_id, $token);
-                return end($card_data);
+                return array_reverse($card_data);
             } catch (Exception $e) {
                 die("Ошибка: " . $e->getMessage());
             }
