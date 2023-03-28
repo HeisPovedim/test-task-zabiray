@@ -1,68 +1,9 @@
 <?php
-    try {
-        // Параметры для получения токена
-        $username = "test";
-        $password = "test1234";
-        $auth_url = "https://testapi.zabiray.ru/token";
 
-        // Получение токена
-        $ch = curl_init($auth_url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
-            "username" => $username,
-            "password" => $password,
-        ]));
-        $response = curl_exec($ch);
+    $apiClient = new ApiClient("test", "test1234", "https://testapi.zabiray.ru/token", "https://testapi.zabiray.ru/cards");
+    $cardsController = new CardsController($apiClient);
+    $last_element = $cardsController->getCard("543");
 
-        if (curl_getinfo($ch, CURLINFO_HTTP_CODE) !== 200) {
-            die("Ошибка получения токена");
-        }
-
-        // Парсим ответ и получаем токен авторизации
-        $response_data = json_decode($response);
-        if (!$response_data || !isset($response_data->access_token) || !isset($response_data->token_type)) {
-            die("Ошибка парсинга токена");
-        }
-
-        $token = $response_data->access_token;
-        $token_type = $response_data->token_type;
-
-        // Параметры для получения карты
-        $card_id = 543;
-        $cards_url = "https://testapi.zabiray.ru/cards";
-
-        // Получения карты
-        $data = array("id" => $card_id);
-        $data_json = json_encode($data);
-
-        $ch = curl_init($cards_url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-            'Content-Type: application/json',
-            "Authorization: $token_type $token"
-        ));
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data_json);
-        $response = curl_exec($ch);
-
-        if (curl_getinfo($ch, CURLINFO_HTTP_CODE) !== 200) {
-            die("Ошибка получения карты");
-        }
-
-        curl_close($ch);
-
-        // парсим ответ и получаем данные о карте
-        $card_data = json_decode($response);
-
-        // получаем данные последней карты в списке
-        $response_array = json_decode($response, true);
-        $last_element = end($response_array);
-
-
-    } catch (Exception $e) {
-        die("Ошибка: " . $e->getMessage());
-    }
 ?>
 <!DOCTYPE html>
 <html>
