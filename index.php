@@ -45,7 +45,7 @@
                     </div>
                     <br />
                     <button id="btn-submit" type="submit" <?= $isConditionMet ? "disabled" : "" ?>>Отправить заявку</button>
-                    <input id="form-valid" style="display: none" value="0">
+                    <input id="btn-continue-card-valid__form-valid" style="display: none" value="0">
             </form>
             <div id="success-message" style="display: none; color: forestgreen">
                 Заявка успешно отправлена.

@@ -1,8 +1,9 @@
 // Получения поля выбора карт
 const cardSelect = document.getElementById("card-select"); // текущая карта
-let expirationWarning = document.getElementById("expiration-warning"); // предупреждение об истекшем сроке действия карты
-let btn_continue_card_valid = document.getElementById("btn-continue-card-valid"); // кнопка "Продолжить, карта действительная"
-let btn_submit = document.getElementById("btn-submit"); // кнпока "Отправить заявку"
+const expirationWarning = document.getElementById("expiration-warning"); // предупреждение об истекшем сроке действия карты
+const btn_continue_card_valid = document.getElementById("btn-continue-card-valid"); // кнопка "Продолжить, карта действительная"
+const btn_submit = document.getElementById("btn-submit"); // кнпока "Отправить заявку"
+const input_valid = document.getElementById("btn-continue-card-valid__form-valid");
 
 // Вызов обработчика change на элементе cardSelect
 const event = new Event('change'); // создаем событие change
@@ -13,6 +14,9 @@ cardSelect.dispatchEvent(event); // запускаем обработчик со
 cardSelect.addEventListener("change",function() {
     // Скрытие сообщение об успешной отправки формы при выборе другой карты
     document.getElementById("success-message").style.display = "none";
+
+    // Обнуление инпута валидации
+    input_valid.setAttribute("value", "0");
 
     // Получение текущей карты
     let selectedOption = cardSelect.options[cardSelect.selectedIndex];
@@ -75,13 +79,13 @@ document.getElementById("btn-continue-card-valid").addEventListener("click", fun
     expirationWarning.style.display = "none";
     btn_continue_card_valid.style.display = "none"
     btn_submit.removeAttribute('disabled');
+    input_valid.setAttribute("value", "1");
 })
 
 // Функция для отправки заявки
 function submitApplication(event) {
     event.preventDefault();
     if ((cardSelect.value !== "") && (cardSelect.value !== undefined)) {
-        document.getElementById("form-valid").setAttribute("value", "1");
         document.getElementById("success-message").style.display = "block";;
     }
 }
