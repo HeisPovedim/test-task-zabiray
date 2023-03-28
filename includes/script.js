@@ -80,9 +80,8 @@ document.getElementById("btn-continue-card-valid").addEventListener("click", fun
 // Функция для отправки заявки
 function submitApplication(event) {
     event.preventDefault();
-    if (cardSelect.value !== "") {
-        let successMessage = document.getElementById("success-message");
-        successMessage.style.display = "block";
+    if ((cardSelect.value !== "") && (cardSelect.value !== undefined)) {
+        document.getElementById("form-valid").setAttribute("value", "1");
+        document.getElementById("success-message").style.display = "block";;
     }
-
 }

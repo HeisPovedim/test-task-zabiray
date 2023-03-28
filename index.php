@@ -1,68 +1,14 @@
 <?php
-    try {
-        // Параметры для получения токена
-        $username = "test";
-        $password = "test1234";
-        $auth_url = "https://testapi.zabiray.ru/token";
 
-        // Получение токена
-        $ch = curl_init($auth_url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
-            "username" => $username,
-            "password" => $password,
-        ]));
-        $response = curl_exec($ch);
+    require_once('API/CardsController.php');
+    require_once('API/ApiClient.php');
 
-        if (curl_getinfo($ch, CURLINFO_HTTP_CODE) !== 200) {
-            die("Ошибка получения токена");
-        }
+    $apiClient = new ApiClient("test", "test1234", "https://testapi.zabiray.ru/token", "https://testapi.zabiray.ru/cards");
+    $cardsController = new CardsController($apiClient);
+    $card_data = $cardsController->getCard("543");
 
-        // Парсим ответ и получаем токен авторизации
-        $response_data = json_decode($response);
-        if (!$response_data || !isset($response_data->access_token) || !isset($response_data->token_type)) {
-            die("Ошибка парсинга токена");
-        }
+    $isConditionMet = (date("m/Y") > $card_data[0]['action_date']) ? true : false;
 
-        $token = $response_data->access_token;
-        $token_type = $response_data->token_type;
-
-        // Параметры для получения карты
-        $card_id = 543;
-        $cards_url = "https://testapi.zabiray.ru/cards";
-
-        // Получения карты
-        $data = array("id" => $card_id);
-        $data_json = json_encode($data);
-
-        $ch = curl_init($cards_url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-            'Content-Type: application/json',
-            "Authorization: $token_type $token"
-        ));
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data_json);
-        $response = curl_exec($ch);
-
-        if (curl_getinfo($ch, CURLINFO_HTTP_CODE) !== 200) {
-            die("Ошибка получения карты");
-        }
-
-        curl_close($ch);
-
-        // парсим ответ и получаем данные о карте
-        $card_data = json_decode($response);
-
-        // получаем данные последней карты в списке
-        $response_array = json_decode($response, true);
-        $last_element = end($response_array);
-
-
-    } catch (Exception $e) {
-        die("Ошибка: " . $e->getMessage());
-    }
 ?>
 <!DOCTYPE html>
 <html>
@@ -80,37 +26,26 @@
                 <select id="card-select" name="card" class="select-box">
                     <!-- Добавляем варианты выбора на основе данных API -->
                     <?php
-                        $reversed_card = array_reverse($card_data);
-                        foreach ($reversed_card as $card) {
+                        foreach ($card_data as $card) {
                     ?>
-                        <option value="<?= $card -> number ?>" data-creation="<?= $card -> action_date ?>"><?= $card -> number ?></option>
+                        <option value="<?= $card['number'] ?>" data-creation="<?= $card['action_date'] ?>"><?= $card['number'] ?></option>
                     <?php } ?>
                 </select>
                 <div id="card-validity-period">
                     <!-- Здесь будет выводиться срок действия карты -->
-                    Срок действия карты: <?= $last_element['action_date'] ?>
+                    Срок действия карты: <?= $card_data[0]['action_date'] ?>
                 </div>
-                <?php if(date("m/Y") > $last_element['action_date']) { ?>
-                    <div id="expiration-warning" style="color: brown; text-align: center">
-                        Карта "<?= $last_element['number'] ?>",
+                    <div id="expiration-warning" style="display: <?= $isConditionMet ? "" : "none" ?>; color: brown; text-align: center">
+                        Карта "<?= $card_data[0]['number'] ?>",
                         является более не действительной на <?= date("m/Y") ?>,
-                        так как срок ее действия прошел <?= $last_element['action_date'] ?>
+                        так как срок ее действия прошел <?= $card_data[0]['action_date'] ?>
                     </div>
-                    <div id="btn-continue-card-valid" style="margin-top: 10px">
+                    <div id="btn-continue-card-valid" style="display: <?= $isConditionMet ? "" : "none" ?>; margin-top: 10px">
                         Продолжить, карта действительная
                     </div>
                     <br />
-                    <button id="btn-submit" type="submit" disabled>Отправить заявку</button>
-                <?php } else { ?>
-                    <div id="expiration-warning" style="display: none; color: brown; text-align: center">
-                        <!-- Здесь будет выводиться предупреждение об истекшем сроке действия карты -->
-                    </div>
-                    <div id="btn-continue-card-valid" style="display: none; margin-top: 10px">
-                        Продолжить, карта действительная
-                    </div>
-                    <br />
-                    <button id="btn-submit" type="submit">Отправить заявку</button>
-                <?php } ?>
+                    <button id="btn-submit" type="submit" <?= $isConditionMet ? "disabled" : "" ?>>Отправить заявку</button>
+                    <input id="form-valid" style="display: none" value="0">
             </form>
             <div id="success-message" style="display: none; color: forestgreen">
                 Заявка успешно отправлена.
